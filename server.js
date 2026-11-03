@@ -22,7 +22,7 @@ const browserLib = require('./lib/browser');
 
 const app = express();
 const PORT = process.env.PORT || 8080;
-const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
+const BASE_URL = process.env.BASE_URL_2 || process.env.BASE_URL || `http://localhost:${PORT}`;
 
 const OP_INIT = process.env.PAYPAL_INIT_OP || 'useMetaPayWalletInitPayPalLinkingMutation';
 const PROFILE_ID =
