@@ -18,6 +18,7 @@ const cookieLib = require('./lib/cookies');
 const { resolveAdAccountId } = require('./lib/adaccount');
 const sessionLib = require('./lib/session');
 const docids = require('./lib/docids');
+const browserLib = require('./lib/browser');
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -107,10 +108,11 @@ function validateCookies(cookies) {
 app.get('/health', (_req, res) => {
   res.json({
     ok: true,
-    version: '3.1.0',
+    version: '3.2.0',
     mode: 'playwright-headless-auto-capture',
     baseUrl: BASE_URL,
     headless: process.env.HEADLESS !== 'false',
+    browserMode: browserLib.resolveMode(),
     docIdsCached: docids.size(),
   });
 });
@@ -348,7 +350,14 @@ app.get('/paypal-callback', (req, res) => {
 app.use(express.static(path.join(__dirname, 'dist')));
 app.get('*', (_req, res) => res.sendFile(path.join(__dirname, 'dist', 'index.html')));
 
-app.listen(PORT, () => {
-  console.log(`Server v3.1.0 on :${PORT} | BASE_URL=${BASE_URL} | headless=${process.env.HEADLESS !== 'false'}`);
-  console.log(`Health: ${BASE_URL}/health`);
-});
+/* على Vercel بنصدّر الـ app كـ serverless function، محلياً بنشغّل السيرفر */
+module.exports = app;
+
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(
+      `Server v3.2.0 on :${PORT} | BASE_URL=${BASE_URL} | mode=${browserLib.resolveMode()} | headless=${process.env.HEADLESS !== 'false'}`
+    );
+    console.log(`Health: ${BASE_URL}/health`);
+  });
+}

@@ -78,6 +78,16 @@ cp .env.example .env      # وعدّل BASE_URL
 npm run build && npm start
 ```
 
+### النشر
+
+| البيئة | الوضع المقترح |
+|---|---|
+| Docker / VPS / Railway / Render | `local` (Chromium مثبت) |
+| **Vercel** | `cdp` (متصفح سحابي) أو `serverless` |
+| Replit | `cdp` أو Chromium محلي |
+
+التفاصيل خطوة بخطوة في **[DEPLOY.md](./DEPLOY.md)**.
+
 ### Docker (مستحسن)
 
 ```bash
