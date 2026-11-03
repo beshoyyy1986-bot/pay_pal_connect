@@ -114,6 +114,7 @@ app.get('/health', (_req, res) => {
     headless: process.env.HEADLESS !== 'false',
     browserMode: browserLib.resolveMode(),
     browserUseConfigured: require('./lib/browser-use').isConfigured(),
+    browserUseKey: require('./lib/browser-use').keyDiagnostics(),
     proxyCountry: (process.env.BU_PROXY_COUNTRY || 'us').toLowerCase(),
     docIdsCached: docids.size(),
   });
