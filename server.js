@@ -113,6 +113,8 @@ app.get('/health', (_req, res) => {
     baseUrl: BASE_URL,
     headless: process.env.HEADLESS !== 'false',
     browserMode: browserLib.resolveMode(),
+    browserUseConfigured: require('./lib/browser-use').isConfigured(),
+    proxyCountry: (process.env.BU_PROXY_COUNTRY || 'us').toLowerCase(),
     docIdsCached: docids.size(),
   });
 });
@@ -142,6 +144,46 @@ app.post('/api/capture', async (req, res) => {
   } catch (err) {
     console.error('CAPTURE ERROR:', err.message);
     res.status(err.status || 500).json({ error: err.message, audit: err.audit });
+  } finally {
+    await sessionLib.closeSession(session);
+    sessionLib.release();
+  }
+});
+
+/**
+ * اختبار المتصفح السحابي فقط (Browser Use):
+ * بيفتح example.com ويرجّع الدولة/التوقيت/الـ UA + sessionId + liveUrl.
+ * مفيد للتأكد إن التوكن والدولة شغالين قبل أي عملية ربط.
+ */
+app.post('/api/browser-test', async (req, res) => {
+  let session;
+  await sessionLib.acquire();
+  try {
+    session = await sessionLib.startSession('c_user=1; xs=1');
+    const page = session.page;
+    await page.goto('https://example.com', { waitUntil: 'domcontentloaded', timeout: 30000 });
+    const info = await page.evaluate(() => ({
+      title: document.title,
+      url: location.href,
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      language: navigator.language,
+      languages: navigator.languages,
+      webdriver: navigator.webdriver,
+      userAgent: navigator.userAgent,
+    }));
+
+    res.json({
+      ok: true,
+      mode: session.mode,
+      remote: session.remote,
+      sessionId: session.remoteSession ? session.remoteSession.id : null,
+      liveUrl: session.remoteSession ? session.remoteSession.liveUrl : null,
+      proxyCountry: (process.env.BU_PROXY_COUNTRY || 'us').toLowerCase(),
+      page: info,
+    });
+  } catch (err) {
+    console.error('BROWSER TEST ERROR:', err.message);
+    res.status(err.status || 500).json({ error: err.message });
   } finally {
     await sessionLib.closeSession(session);
     sessionLib.release();

@@ -83,7 +83,7 @@ npm run build && npm start
 | البيئة | الوضع المقترح |
 |---|---|
 | Docker / VPS / Railway / Render | `local` (Chromium مثبت) |
-| **Vercel** | `cdp` (متصفح سحابي) أو `serverless` |
+| **Vercel** | `browseruse` (موصى به) أو `cdp` أو `serverless` |
 | Replit | `cdp` أو Chromium محلي |
 
 التفاصيل خطوة بخطوة في **[DEPLOY.md](./DEPLOY.md)**.

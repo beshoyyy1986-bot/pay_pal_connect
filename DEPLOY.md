@@ -5,7 +5,8 @@
 | الوضع | البيئة | إيه اللي بيحصل |
 |---|---|---|
 | `local` (افتراضي) | Docker · VPS · Railway · Render | بيشغّل Chromium المثبت محلياً |
-| `cdp` | **Vercel** · Replit · أي سيرفر | بيتصل بمتصفح سحابي عبر WebSocket (Browserless/Browserbase/Steel) |
+| `browseruse` | **Vercel** · Replit · أي سيرفر | Browser Use Cloud — بروكسي أمريكا افتراضياً، cdpUrl جاهز فوراً |
+| `cdp` | أي سيرفر | متصفح سحابي عبر WebSocket (Browserless/Browserbase/Steel) |
 | `serverless` | Vercel | `@sparticuz/chromium` كـ binary مضغوط جوه الـ Function |
 
 ---
@@ -15,7 +16,28 @@
 > ⚠️ Vercel Functions مش بتسمح بتشغيل Chromium كامل (حد 250MB غير مضغوط + مدة قصوى).
 > لازم تختار **إما** متصفح سحابي (`cdp`) **أو** `serverless`.
 
-### الطريقة A — متصفح سحابي (الأفضل ✅)
+### الطريقة A — Browser Use Cloud (الأسهل ✅✅)
+
+عندك توكن `bu_...`؟ خلاص، مفيش أي إعداد تاني:
+
+```
+BASE_URL            = https://<project>.vercel.app
+BROWSER_USE_API_KEY = bu_...
+BU_PROXY_COUNTRY    = us
+```
+
+الأداة هتفتح جلسة Chromium سحابي ببروكسي أمريكي، تتصل بيها بـ CDP، وتقفلها فوراً بعد الانتهاء
+(التكلفة $0.02/ساعة بأقل دقيقة). اختبر بـ:
+
+```bash
+curl -X POST https://<domain>/api/browser-test
+# → { "ok": true, "mode": "browseruse", "proxyCountry": "us",
+#     "page": { "timezone": "America/New_York", ... }, "liveUrl": "..." }
+```
+
+> `liveUrl` بيفتحلك المتصفح لايف في المتصفح بتاعك — مفيد جداً للديباج.
+
+### الطريقة B — مزوّد CDP آخر
 
 1. اعمل حساب على واحد من دول وخد الـ WebSocket endpoint:
    - **Browserless** → `wss://production-sfo.browserless.io?token=XXXX`
@@ -33,7 +55,7 @@ FB_SCAN_FILES       = 40
 
 4. Deploy. جرّب `https://<project>.vercel.app/health` → لازم تشوف `"browserMode":"cdp"`.
 
-### الطريقة B — `@sparticuz/chromium`
+### الطريقة C — `@sparticuz/chromium`
 
 ```
 BASE_URL     = https://<project>.vercel.app
@@ -100,6 +122,10 @@ docker run -p 8080:8080 --env-file .env paypal-linker
 | `PORT` | `8080` | منفذ السيرفر (محلياً) |
 | `BASE_URL` | `http://localhost:PORT` | **لازم** يكون الدومين الحقيقي |
 | `BROWSER_MODE` | تلقائي | `local` / `cdp` / `serverless` |
+| `BROWSER_USE_API_KEY` | — | توكن Browser Use (يفعّل وضع `browseruse` تلقائياً) |
+| `BU_PROXY_COUNTRY` | `us` | دولة البروكسي (اللغة والتوقيت بيتظبطوا عليها) |
+| `BU_SESSION_TIMEOUT_MIN` | `5` | أقصى مدة للجلسة السحابية بالدقايق |
+| `BU_SOLVE_CAPTCHAS` | `true` | حل الكابتشا تلقائياً في المتصفح السحابي |
 | `BROWSER_WS_ENDPOINT` | — | مطلوب لو `cdp` |
 | `BROWSER_CONNECT_TIMEOUT` | `30000` | مهلة الاتصال بالمتصفح السحابي |
 | `HEADLESS` | `true` | للديباج فقط |
