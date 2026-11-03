@@ -1,14 +1,37 @@
 import axios from 'axios';
+
 const API_BASE = import.meta.env.VITE_API_URL || '';
 
-// بدء ربط PayPal - الـ fbDtsg اختياري (السيرفر يستخرجه تلقائياً لو مبعوتش)
-export async function initiatePayPalLinking(cookies: string, adAccountId: string, fbDtsg?: string) {
+export type CapturedFlags = {
+  fb_dtsg: boolean;
+  lsd: boolean;
+  rev: boolean;
+  hs: boolean;
+  s: boolean;
+  hsi: boolean;
+};
+
+export type StartLinkingResponse = {
+  approvalUrl: string;
+  adAccountId: string;
+  userId: string;
+  docId: string;
+  captured: CapturedFlags;
+};
+
+/**
+ * بدء الربط: السيرفر هو اللي يفتح جلسة فيسبوك (Playwright) ويقرأ كل البارامترات بنفسه.
+ * مفيش أي إدخال يدوي للتوكنات.
+ */
+export async function initiatePayPalLinking(
+  cookies: string,
+  adAccount: string
+): Promise<StartLinkingResponse> {
   const { data } = await axios.post(`${API_BASE}/api/start-linking`, {
     cookies,
-    adAccountId,
-    fbDtsg: fbDtsg || undefined // مبنعملش send null عشان ما يعملش مشاكل
+    adAccountId: adAccount,
   });
-  return data.approvalUrl as string;
+  return data as StartLinkingResponse;
 }
 
 export async function insertFundingSource(
@@ -21,7 +44,7 @@ export async function insertFundingSource(
     cookies,
     adAccountId,
     paymentToken,
-    payerId
+    payerId,
   });
   return data;
 }
